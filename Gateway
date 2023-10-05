@@ -1,7 +1,7 @@
-yum update
-yum install tmux emacs git net-tools epel-release
-yum install screen nmap chrony ipmitool
 nmtui # config network
+yum update
+yum install tmux emacs git net-tools epel-release chrony ipmitool dstat iotop nmap
+yum install screen chrony ipmitool 
 iptables -t nat -A POSTROUTING -o eno2 -j MASQUERADE
 iptables -A FORWARD -i eno1 -j ACCEPT
 echo 1 > /proc/sys/net/ipv4/ip_forward
@@ -13,7 +13,9 @@ systemctl enable chronyd
 systemctl restart chronyd
 ipmitool lan set 1 ipsrc static
 ipmitool lan set 1 ipaddr 192.168.10.50
-ipmitool user set password 2 buttonadmin64
-ipmitool user set password 3 buttonadmin64
+ipmitool user set password 2 ...
+ipmitool user set password 3 ...
+ipmitool lan set 1 defgw ipaddr 192.168.10.10
+ipmitool lan set 1 bakgw ipaddr 192.168.10.11
 emacs .ssh/authorized_keys # add authorised rsa keys
 emacs /etc/ssh/sshd_config # remove password ssh

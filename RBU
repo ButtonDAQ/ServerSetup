@@ -1,0 +1,39 @@
+nmtui # config network
+yum update
+yum install tmux emacs git net-tools epel-release chrony ipmitool dstat iotop nmap
+yum install screen htop nload sysstat 
+hostnamectl set-hostname RBU-01
+systemctl enable chronyd
+systemctl restart chronyd
+systemctl disable firewalld
+systemctl stop firewalld
+parted /dev/sda mklabel gpt
+fdisk /dev/sda
+      n
+      all defaults
+      t
+      29
+      w
+mdadm --create /dev/md0 --level=1 --raid-devices= /dev/sda1 /dev/sdb1
+mkfs.xfs /dev/md0
+mkdir /mnt/raid1
+mkdir /mnt/ramdisk
+emacs /etc/fstab -nw
+      /dev/md0               /mnt/raid1               xfs    defaults        0 0
+      tmpfs		     /mnt/ramdisk	      tmpfs  nodev,nosuid,noexec,nodiratime,size=1024M   0 0
+
+mdadm --add /dev/md0 /dev/sdc1
+ysctl -w dev.raid.speed_limit_min=500000
+sysctl -w dev.raid.speed_limit_max=5000000
+
+#once finised sync. can check with mdadm [--detail /dev/md0]
+sysctl -w dev .raid.speed_limit_min=1000
+sysctl -w dev.raid.speed_limit_max=200000
+
+mdadm --detail --scan --verbose >> /etc/mdadm.conf
+ipmitool lan set 1 ipsrc static
+ipmitool lan set 1 ipaddr 192.168.10.52
+ipmitool user set password 2 ...
+ipmitool user set password 3 ...
+ipmitool lan set 1 defgw ipaddr 192.168.10.10
+ipmitool lan set 1 bakgw ipaddr 192.168.10.11
