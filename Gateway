@@ -1,0 +1,19 @@
+yum update
+yum install tmux emacs git net-tools epel-release
+yum install screen nmap chrony ipmitool
+nmtui # config network
+iptables -t nat -A POSTROUTING -o eno2 -j MASQUERADE
+iptables -A FORWARD -i eno1 -j ACCEPT
+echo 1 > /proc/sys/net/ipv4/ip_forward
+firewall-cmd --permanent --zone=trusted --add-interface=eno1
+firewall-cmd --permanent --zone=external --add-interface=eno2
+firewall-cmd --reload
+hostnamectl set-hostname GW-01
+systemctl enable chronyd
+systemctl restart chronyd
+ipmitool lan set 1 ipsrc static
+ipmitool lan set 1 ipaddr 192.168.10.50
+ipmitool user set password 2 buttonadmin64
+ipmitool user set password 3 buttonadmin64
+emacs .ssh/authorized_keys # add authorised rsa keys
+emacs /etc/ssh/sshd_config # remove password ssh
