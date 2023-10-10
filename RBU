@@ -1,7 +1,7 @@
 nmtui # config network
 yum update
 yum install tmux emacs git net-tools epel-release chrony ipmitool dstat iotop nmap
-yum install screen htop nload sysstat 
+yum install screen htop nload sysstat nfs-utils usbutils
 hostnamectl set-hostname RBU-01
 systemctl enable chronyd
 systemctl restart chronyd
@@ -14,20 +14,22 @@ fdisk /dev/sda
       t
       29
       w
-mdadm --create /dev/md0 --level=1 --raid-devices= /dev/sda1 /dev/sdb1
+mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sda1 /dev/sdb1
 mkfs.xfs /dev/md0
 mkdir /mnt/raid1
 mkdir /mnt/ramdisk
+mkdir /mnt/raid6
 emacs /etc/fstab -nw
       /dev/md0               /mnt/raid1               xfs    defaults        0 0
       tmpfs		     /mnt/ramdisk	      tmpfs  nodev,nosuid,noexec,nodiratime,size=1024M   0 0
+      192.168.10.24:/mnt/raid6 /mnt/raid6	      nfs    defaults					 0 0
 
 mdadm --add /dev/md0 /dev/sdc1
-ysctl -w dev.raid.speed_limit_min=500000
+sysctl -w dev.raid.speed_limit_min=500000
 sysctl -w dev.raid.speed_limit_max=5000000
 
-#once finised sync. can check with mdadm [--detail /dev/md0]
-sysctl -w dev .raid.speed_limit_min=1000
+#once finised sync. can check with [mdadm --detail /dev/md0]
+sysctl -w devsysctl -w dev.raid.speed_limit_max=200000.raid.speed_limit_min=1000
 sysctl -w dev.raid.speed_limit_max=200000
 
 mdadm --detail --scan --verbose >> /etc/mdadm.conf
