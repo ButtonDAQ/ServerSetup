@@ -39,3 +39,22 @@ ipmitool user set password 2 ...
 ipmitool user set password 3 ...
 ipmitool lan set 1 defgw ipaddr 192.168.10.10
 ipmitool lan set 1 bakgw ipaddr 192.168.10.11
+
+yum install tar gcc g++ java xauth zlib-devel vim rsync
+
+# download from caen.it to ~/caen:
+# CAENVMELib-v3.4.1
+# CAENComm-v1.6.0
+# CAENDigitizer-v2.17.3
+
+for package in ~/caen/CAEN{VMELib-v3.4.1,Comm-v1.6.0,Digitizer-v2.17.3}; do
+  tar -C "${package%/*}" -xf "$package".tgz &&
+  for lib in "$package/lib/x64"/lib*.so.*; do
+    install -v -o root -g root "$lib" /usr/local/lib64/ &&
+    lib="${lib##*/}" &&
+    ln -vs "$lib" "/usr/local/lib64/${lib%.so*}.so" || break
+  done &&
+  install -v -m 644 -o root -g root "$package/include"/* /usr/local/include/ || break
+done
+
+(cd ~/caen/CAENUpgrader-1.7.7 && ./configure && make && make install)
