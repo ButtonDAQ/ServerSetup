@@ -40,7 +40,7 @@ ipmitool user set password 3 ...
 ipmitool lan set 1 defgw ipaddr 192.168.10.10
 ipmitool lan set 1 bakgw ipaddr 192.168.10.11
 
-yum install tar gcc g++ java xauth zlib-devel vim rsync
+yum install tar gcc g++ java xauth zlib-devel vim rsync telnet
 
 # download from caen.it to ~/caen:
 # CAENVMELib-v3.4.1
