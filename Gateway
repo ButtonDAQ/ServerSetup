@@ -7,6 +7,9 @@ iptables -A FORWARD -i eno1 -j ACCEPT
 echo 1 > /proc/sys/net/ipv4/ip_forward
 firewall-cmd --permanent --zone=trusted --add-interface=eno1
 firewall-cmd --permanent --zone=external --add-interface=eno2
+firewall-cmd --add-forward-port=port=80:proto=tcp:toport=80:toaddr=192.168.10.14 --zone=external --permanent
+firewall-cmd --permanent --zone=external --add-masquerade
+firewall-cmd --permanent --zone=internal --add-masquerade
 firewall-cmd --reload
 hostnamectl set-hostname GW-01
 systemctl enable chronyd
