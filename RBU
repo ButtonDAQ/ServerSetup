@@ -23,6 +23,7 @@ emacs /etc/fstab -nw
       /dev/md0               /mnt/raid1               xfs    defaults        0 0
       tmpfs		     /mnt/ramdisk	      tmpfs  nodev,nosuid,noexec,nodiratime,size=1024M   0 0
       192.168.10.24:/mnt/raid6 /mnt/raid6	      nfs    defaults					 0 0
+mount -av
 
 mdadm --add /dev/md0 /dev/sdc1
 sysctl -w dev.raid.speed_limit_min=500000
