@@ -1,6 +1,6 @@
 nmtui # config network
 yum update
-yum install tmux emacs git net-tools epel-release chrony ipmitool dstat iotop nmap
+yum install tmux emacs git net-tools epel-release chrony ipmitool dstat iotop nmap mdadm
 yum install screen htop nload sysstat nfs-utils usbutils
 hostnamectl set-hostname RBU-01
 systemctl enable chronyd
