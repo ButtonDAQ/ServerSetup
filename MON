@@ -1,4 +1,4 @@
-yum install nfs-utils
+yum install nfs-utils  postgresql-server 
 systemctl enable nfs-server.service
 systemctl start nfs-server.service
 emacs /etc/exports
