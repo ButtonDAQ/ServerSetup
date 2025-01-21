@@ -1,0 +1,95 @@
+yum install epel-release
+yum install httpd vim screen perl-DBI perl-DBD-Pg perl-JSON
+
+echo 192.168.10.46 DB-01 >> /etc/hosts
+
+useradd -m -G wheel admin
+passwd admin
+
+git clone 'https://github.com/ToolDAQ/zeromq-4.0.7'
+cd zeromq-4.0.7
+./configure --prefix=`pwd`
+make -j `nproc`
+make install # complains about overwriting zmq.h and zmq_utils.h with themselves
+cd ..
+
+git clone 'https://github.com/ToolDAQ/boost_1_66_0'
+cd boost_1_66_0
+./bootstrap.sh --prefix=`pwd`/install
+./b2 install iostreams -j `nproc`
+cd ..
+
+git clone 'https://github.com/ToolDAQ/cgicc-3.2.9'
+cd cgicc-3.2.9
+./configure --prefix=`pwd` --disable-demos
+make -j `nproc` -k # complains about non-existing doc/index.html
+cd ..
+
+git clone https://github.com/ToolFramework/ToolFrameworkCore
+make -j `nproc` -C ToolFrameworkCore
+
+git clone https://github.com/ToolDAQ/ToolDAQFramework
+make -j `nproc` -C ToolDAQFramework
+
+git clone https://github.com/ToolDAQ/WebServer
+cd WebServer
+rm html
+ln -s html-Detector html
+make -j `nproc`
+cat > setenv.sh <<'END'
+__addpath() {
+  local var=$1
+  local path=$2
+  if [[ -z ${!var} ]]; then
+    export $var=$path
+  elif ! [[ ${!var} =~ (^|:)"$path"(:|$) ]]; then
+    export $var=${!var}:$path
+  fi
+}
+
+__addpath CPATH /opt/cgicc-3.2.9
+__addpath LIBRARY_PATH /opt/cgicc-3.2.9/cgicc.libs
+for path in \
+  /opt/zeromq-4.0.7/lib \
+  /opt/boost_1_66_0/install/lib \
+  /opt/cgicc-3.2.9/cgicc/.libs \
+  /opt/ToolFrameworkCore/lib \
+  /opt/ToolDAQFramework/lib
+do
+  __addpath LD_LIBRARY_PATH $path
+done
+
+if [[ -z $MAKEFLAGS ]]; then
+  export MAKEFLAGS=-j`nproc`
+fi
+
+unset -f __addpath
+END
+( . setenv.sh && make -C cgi-bin )
+chmod -x httpd.conf
+echo 'SetEnv PGHOST "db-01"' >> httpd.conf
+cp httpd.conf /etc/httpd/conf/httpd.conf
+cd ..
+
+ln -s opt/WebServer /web
+systemctl enable httpd
+systemctl start httpd
+chgrp wheel /var/log/httpd
+chmod g+rx /var/log/httpd
+
+cat > /etc/systemd/system/backgroundSD.service <<'END'
+[Unit]
+Description=backgroundSD --- provides list of services for ToolDAQ web server
+After=httpd.service
+
+[Service]
+User=apache
+ExecStart=bash -c '. /web/setenv.sh && exec /web/backgroundSD'
+
+[Install]
+WantedBy=default.target
+END
+systemctl enable backgroundSD
+systemctl start backgroundSD
+
+chown -R admin /opt/{boost_1_66_0,cgicc-3.2.9,ToolDAQFramework,ToolFrameworkCore,WebServer,zeromq-4.0.7}
