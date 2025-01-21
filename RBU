@@ -59,3 +59,7 @@ for package in CAEN{VMELib-v4.0.2,Comm-v1.7.0,Digitizer-v2.17.3}; do
 done
 
 (cd ~/caen/CAENUpgrader-1.7.7 && ./configure && make && make install)
+
+# Disable handling of core dumps by systemd
+ln -s /dev/null /etc/sysctl.d/50-coredump.conf
+echo core > /proc/sys/kernel/core_pattern
